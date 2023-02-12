@@ -1,20 +1,21 @@
+package MovieRentalSystem;
 public class Movie {    
-    public static final int  CHILDRENS = 2;    
-    public static final int  REGULAR = 0;    
-    public static final int  NEW_RELEASE = 1;    
+    static final int  CHILDRENS = 2;    
+    static final int  REGULAR = 0;    
+    static final int  NEW_RELEASE = 1;    
     private String _title;    
     private Price _price;   
     
-    public Movie(String title, int priceCode) {   
+    Movie(String title, int priceCode) {   
         _title = title;        
         setPriceCode(priceCode);    
     }    
     
-    public int getPriceCode() {       
+    int getPriceCode() {       
         return _price.getPriceCode();    
     }    
     
-    public void setPriceCode(int arg) {        
+    void setPriceCode(int arg) {        
         switch (arg) {        
             case REGULAR:          
                 _price = new RegularPrice();           
@@ -30,7 +31,7 @@ public class Movie {
         }    
     }        
     
-    public String getTitle (){       
+    String getTitle (){       
         return _title;    
     };  
 
