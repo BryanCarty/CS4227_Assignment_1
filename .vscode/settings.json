@@ -1,0 +1,8 @@
+{
+    "java.project.referencedLibraries": [
+        "lib/**/*.jar",
+        "c:\\Program Files\\Java\\jdk-12.0.2\\lib\\org.json.jar",
+        "c:\\Program Files\\Java\\jdk-12.0.2\\lib\\json-simple-1.1.1.jar",
+        "c:\\Program Files\\Java\\jdk-12.0.2\\lib\\pair-2.2.jar"
+    ]
+}
