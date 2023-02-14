@@ -14,7 +14,9 @@ import javafx.util.Pair;
 public class MovieRentalSystemFrontEnd {
     public Pair<Pair<Boolean, String>, String> login(String name, String password){
         try {
+            //PRE USER CREDENTIAL VALIDATION
             Pair<Boolean, Integer> isValidUserPair = isValidUser(name, password);
+            //POST USER CREDENTIAL VALIDATION
             if (!isValidUserPair.getLeft()){
                 return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Invalid Credentials"), null);
             }
@@ -33,7 +35,10 @@ public class MovieRentalSystemFrontEnd {
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
-        return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(true, "200 Success: Movie created successfully"), new Movie(name, priceCode));
+        //PRE MOVIE CREATION
+        Movie newMovie = new Movie(name, priceCode);
+        //POST MOVIE CREATION
+        return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(true, "200 Success: Movie created successfully"), newMovie);
     }
 
     public Pair<Pair<Boolean, String>, Rental> createRental(Movie movie, int daysRented, String token){
@@ -82,8 +87,10 @@ public class MovieRentalSystemFrontEnd {
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
-        
-        return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(true, "200 Success: Customer created successfully"), customer.statement());
+        //PRE STATEMENT CREATION
+        String newStatement = customer.statement();
+        //POST STATEMENT CREATION
+        return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(true, "200 Success: Customer created successfully"), newStatement);
     }
 
     public Pair<Pair<Boolean, String>, String> getHtmlStatement(Customer customer, String token){

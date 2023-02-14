@@ -1,0 +1,10 @@
+package MovieRentalSystem.Interceptors;
+
+import MovieRentalSystem.ContextObjectInterfaces.PreUserCredentialsValidationContext;
+import MovieRentalSystem.ContextObjectInterfaces.PostUserCredentialsValidationContext;
+
+
+public interface UserCredentialsValidationInterceptor {
+    public void onPreUserCredentialsValidation(PreUserCredentialsValidationContext context);
+    public void onPostUserCredentialsValidation(PostUserCredentialsValidationContext context);
+}
