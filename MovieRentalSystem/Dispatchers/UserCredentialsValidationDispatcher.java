@@ -7,20 +7,20 @@ import MovieRentalSystem.ContextObjectInterfaces.PreUserCredentialsValidationCon
 import MovieRentalSystem.Interceptors.UserCredentialsValidationInterceptor;
 
 public class UserCredentialsValidationDispatcher implements UserCredentialsValidationInterceptor{
-    Vector<UserCredentialsValidationInterceptor> Interceptors;
+    Vector<UserCredentialsValidationInterceptor> InterceptorsStore = new Vector<UserCredentialsValidationInterceptor>();
 
-    synchronized public void registerClientRequestInterceptor(UserCredentialsValidationInterceptor i) {
-        Interceptors.addElement(i);
+    synchronized public void registerCredentialValidationInterceptor(UserCredentialsValidationInterceptor i) {
+        InterceptorsStore.addElement(i);
     }
 
-    synchronized public void removeClientRequestInterceptor(UserCredentialsValidationInterceptor i) {
-        Interceptors.removeElement(i);
+    synchronized public void removeCredentialValidationInterceptor(UserCredentialsValidationInterceptor i) {
+        InterceptorsStore.removeElement(i);
     }
 
     public void dispatchPreUserCredentialsValidation(PreUserCredentialsValidationContext context) {
         Vector<UserCredentialsValidationInterceptor> Interceptors = new Vector<UserCredentialsValidationInterceptor>();
         synchronized (this) {
-            Interceptors = (Vector<UserCredentialsValidationInterceptor>) Interceptors.clone();
+            Interceptors = (Vector<UserCredentialsValidationInterceptor>) InterceptorsStore.clone();
         }
         for(int i = 0; i < Interceptors.size(); i++) {
             UserCredentialsValidationInterceptor ic =(UserCredentialsValidationInterceptor)Interceptors.elementAt(i);
@@ -31,7 +31,7 @@ public class UserCredentialsValidationDispatcher implements UserCredentialsValid
     public void dispatchPostUserCredentialsValidation(PostUserCredentialsValidationContext context) {
         Vector<UserCredentialsValidationInterceptor> Interceptors = new Vector<UserCredentialsValidationInterceptor>();
         synchronized (this) {
-            Interceptors = (Vector<UserCredentialsValidationInterceptor>) Interceptors.clone();
+            Interceptors = (Vector<UserCredentialsValidationInterceptor>) InterceptorsStore.clone();
         }
         for(int i = 0; i < Interceptors.size(); i++) {
             UserCredentialsValidationInterceptor ic =(UserCredentialsValidationInterceptor)Interceptors.elementAt(i);

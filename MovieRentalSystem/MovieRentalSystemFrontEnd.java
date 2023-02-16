@@ -10,16 +10,89 @@ import java.util.Random;
 import org.json.*;
 import org.json.simple.parser.ParseException;
 
+import MovieRentalSystem.ContextObjectInterfaces.PostMovieCreationContext;
+import MovieRentalSystem.ContextObjectInterfaces.PostUserCredentialsValidationContext;
+import MovieRentalSystem.ContextObjectInterfaces.PreMovieCreationContext;
+import MovieRentalSystem.ContextObjectInterfaces.PreUserCredentialsValidationContext;
+import MovieRentalSystem.Dispatchers.MovieCreationDispatcher;
+import MovieRentalSystem.Dispatchers.UserCredentialsValidationDispatcher;
 import javafx.util.Pair;
 public class MovieRentalSystemFrontEnd {
+    private static final UserCredentialsValidationDispatcher userCredDispatcher =  new UserCredentialsValidationDispatcher();
+    private static final MovieCreationDispatcher movieCreationDispatcher =  new MovieCreationDispatcher();
+
+    private boolean illegalCharacterDetected;
+    private long timeInMilliseconds;
+
+
+    public UserCredentialsValidationDispatcher getUserCredDispatcherInstance(){
+        return userCredDispatcher;
+    }
+
+    public MovieCreationDispatcher getMovieCreationDispatcherInstance(){
+        return movieCreationDispatcher;
+    }
+
     public Pair<Pair<Boolean, String>, String> login(String name, String password){
+        PreUserCredentialsValidationContext preCredValContext = new PreUserCredentialsValidationContext() {
+
+            @Override
+            public String getUsername() {
+                return name;
+            }
+
+            @Override
+            public String getPassword() {
+                return password;
+            }
+
+            @Override
+            public void setIllegalCharacterCredentials(boolean illegalCharDetected) {
+                illegalCharacterDetected = illegalCharDetected;
+            }
+            
+        };
+
+
+        
         try {
             //PRE USER CREDENTIAL VALIDATION
+            userCredDispatcher.dispatchPreUserCredentialsValidation(preCredValContext);
+            if (illegalCharacterDetected){
+                return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Illegal Character detected in Credentials"), null);
+            }
             Pair<Boolean, Integer> isValidUserPair = isValidUser(name, password);
-            //POST USER CREDENTIAL VALIDATION
-            if (!isValidUserPair.getLeft()){
+            //POST USER CRED
+            boolean invalidLogin = !isValidUserPair.getLeft();
+
+            PostUserCredentialsValidationContext postUserCredentialsValidationContext = new PostUserCredentialsValidationContext() {
+
+                @Override
+                public int getNumberOfSalesSinceLastLogIn() {
+                    int lastLogin = getUserLastLogin(isValidUserPair.getRight());
+                    int numAdditionalSales = getNumSalesSince(lastLogin);
+                    return numAdditionalSales;
+                }
+
+                @Override
+                public int getNumberOfNewCustomersSinceLastLogIn() {
+                    int lastLogin = getUserLastLogin(isValidUserPair.getRight());
+                    int numAdditionalCust = getNumNewCustSince(lastLogin);
+                    return numAdditionalCust;
+                }
+
+                @Override
+                public String getTimeSinceLastLogIn() {
+                    int lastLogin = getUserLastLogin(isValidUserPair.getRight());
+                    return unixToStandard(lastLogin);
+                }
+
+                
+            };
+            if (invalidLogin){
                 return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Invalid Credentials"), null);
             }
+            userCredDispatcher.dispatchPostUserCredentialsValidation(postUserCredentialsValidationContext);
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(true, "200 Success: Successfully logged in"), generateUserToken(isValidUserPair.getRight()));
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
@@ -36,8 +109,26 @@ public class MovieRentalSystemFrontEnd {
             return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
         //PRE MOVIE CREATION
+        PreMovieCreationContext preMovieCreationContext = new PreMovieCreationContext() {
+
+            @Override
+            public void startTimer() {
+                timeInMilliseconds = System.currentTimeMillis();
+            }
+            
+        };
+        movieCreationDispatcher.dispatchPreMovieCreation(preMovieCreationContext);
         Movie newMovie = new Movie(name, priceCode);
         //POST MOVIE CREATION
+        PostMovieCreationContext postMovieCreationContext = new PostMovieCreationContext() {
+
+            @Override
+            public long stopTimer() {
+                return System.currentTimeMillis()-timeInMilliseconds;
+            }
+            
+        };
+        movieCreationDispatcher.dispatchPostMovieCreation(postMovieCreationContext);
         return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(true, "200 Success: Movie created successfully"), newMovie);
     }
 
@@ -61,8 +152,6 @@ public class MovieRentalSystemFrontEnd {
             return new Pair<Pair<Boolean,String>,Customer>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
         Customer returnCust = new Customer(name);
-
-        System.out.println(returnCust);
         return new Pair<Pair<Boolean,String>,Customer>(new Pair<Boolean,String>(true, "200 Success: Customer created successfully"), returnCust);
     }
 
@@ -207,4 +296,24 @@ public class MovieRentalSystemFrontEnd {
         return false;
     }
 
+
+    private int getUserLastLogin(Integer integer){
+        //This method would query a database if this were a real world application. For now it returns a dummy unix timestamp
+        return 1676491902;
+    }
+
+    
+    private int getNumSalesSince(Integer integer){
+        //This method would query a database if this were a real world application. For now it returns a dummy number of sales
+        return 3;
+    }
+
+    private int getNumNewCustSince(Integer integer){
+        //This method would query a database if this were a real world application. For now it returns a dummy number of new customers
+        return 2;
+    }
+
+    private String unixToStandard(int t){
+        return "15-02-22";
+    }
 }
