@@ -112,8 +112,8 @@ public class MovieRentalSystemFrontEnd {
         PreMovieCreationContext preMovieCreationContext = new PreMovieCreationContext() {
 
             @Override
-            public void startTimer() {
-                timeInMilliseconds = System.currentTimeMillis();
+            public void startTimer(long time) {
+                timeInMilliseconds = time;
             }
             
         };
@@ -123,8 +123,8 @@ public class MovieRentalSystemFrontEnd {
         PostMovieCreationContext postMovieCreationContext = new PostMovieCreationContext() {
 
             @Override
-            public long stopTimer() {
-                return System.currentTimeMillis()-timeInMilliseconds;
+            public long stopTimer(long endTime) {
+                return endTime-timeInMilliseconds;
             }
             
         };

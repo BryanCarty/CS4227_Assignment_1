@@ -51,13 +51,13 @@ public class Main {
 
             @Override
             public void onPreMovieCreation(PreMovieCreationContext context) {
-                context.startTimer();
+                context.startTimer(System.currentTimeMillis());
                 
             }
 
             @Override
             public void onPostMovieCreation(PostMovieCreationContext context) {
-                System.out.println("INFO: It took "+context.stopTimer()+" milliseconds to create a movie");
+                System.out.println("INFO: It took "+context.stopTimer(System.currentTimeMillis())+" milliseconds to create a movie");
                 
             }
             
