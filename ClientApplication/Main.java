@@ -16,13 +16,16 @@ import javafx.util.Pair;
 
 public class Main {
     public static void main(String[] args){
+
+        //Create Movie Rental System Front End
         MovieRentalSystemFrontEnd movieRentalSystem = new MovieRentalSystem.MovieRentalSystemFrontEnd();
 
+        //Define Concrete User Credential Validation Interceptor
         UserCredentialsValidationInterceptor clientCredentialsInterceptor = new UserCredentialsValidationInterceptor(){
 
             @Override
             public void onPreUserCredentialsValidation(PreUserCredentialsValidationContext context) {
-                // Check for illegal characters in client credentials - avoid SQL injection
+                // Check For Illegal Characters And Avoid SQL Injection
                 Pattern special = Pattern.compile ("[!@#$%&*()_+=|<>?{}\\[\\]~-]");
                 Matcher passwordHasSpecial = special.matcher(context.getPassword());
                 Matcher usernameHasSpecial = special.matcher(context.getUsername());
@@ -35,45 +38,66 @@ public class Main {
 
             @Override
             public void onPostUserCredentialsValidation(PostUserCredentialsValidationContext context) {
-                //Log updates since last login
-                System.out.println("INFO: Since you last logged in on the "+context.getTimeSinceLastLogIn()+", there has been "+context.getNumberOfNewCustomersSinceLastLogIn()+" new customer accounts created, and "+context.getNumberOfSalesSinceLastLogIn()+" new transactions");         
+                //Log Updates Since Last Login
+                System.out.println("INFO: Since you last logged in on the "+context.getDateOfLastLogIn()+", there has been "+context.getNumberOfNewCustomersSinceLastLogIn()+" new customer accounts created, and "+context.getNumberOfRentalsSinceLastLogIn()+" new rental transactions");         
             }
 
         };
 
+        //Register Credential Validation Interceptor With Dispatcher
         movieRentalSystem.getUserCredDispatcherInstance().registerCredentialValidationInterceptor(clientCredentialsInterceptor);
         
+        //Login
         Pair<Pair<Boolean, String>, String> login = movieRentalSystem.login("Mathew", "pass2");
         System.out.println(login);
 
 
+
+        //Define Concrete MovieCreation Interceptor
         MovieCreationInterceptor movieCreationInterceptor = new MovieCreationInterceptor() {
 
             @Override
             public void onPreMovieCreation(PreMovieCreationContext context) {
-                context.startTimer(System.currentTimeMillis());
+                //Start Timer To Measure Performance
+                context.startTimer();
                 
             }
 
             @Override
             public void onPostMovieCreation(PostMovieCreationContext context) {
-                System.out.println("INFO: It took "+context.stopTimer(System.currentTimeMillis())+" milliseconds to create a movie");
+                //Stop Timer To Measure Performance
+                System.out.println("INFO: It took "+context.stopTimer()+" milliseconds to create a movie");
                 
             }
             
         };
 
+        //Register MovieCreation Interceptor With Dispatcher
         movieRentalSystem.getMovieCreationDispatcherInstance().registerMovieCreationInterceptor(movieCreationInterceptor);
-        Pair<Pair<Boolean, String>, Movie> movie = movieRentalSystem.createMovie("HarryPotter", 0, login.getRight());
+
+        //Create A Movie Using Login Token
+        Pair<Pair<Boolean, String>, Movie> movie = movieRentalSystem.createMovie("Harry Potter", 0, login.getRight());
         System.out.println(movie);
+
+        //Create A Rental Using Movie And Login Token
         Pair<Pair<Boolean, String>, Rental> rental = movieRentalSystem.createRental(movie.getRight(), 3, login.getRight());
         System.out.println(rental);
+
+        //Create A Customer Using Login Token
         Pair<Pair<Boolean, String>, Customer> customer = movieRentalSystem.createCustomer("tommy", login.getRight());
         System.out.println(customer.getRight());  
+
+        //Add A Rental To That Customers Account
         Pair<Boolean, String> addRental = movieRentalSystem.addRental(customer.getRight(), rental.getRight(), login.getRight());
         System.out.println(addRental);
+
+        //Get String Statement For That Customer
         System.out.println(movieRentalSystem.getStringStatement(customer.getRight(), login.getRight()));
+
+        //Get Html Statment For That Customer
         System.out.println(movieRentalSystem.getHtmlStatement(customer.getRight(), login.getRight()));
+
+        //Logout Using Login Token
         System.out.println(movieRentalSystem.logout(login.getRight()));
     }
 }

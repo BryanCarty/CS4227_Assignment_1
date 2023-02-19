@@ -5,6 +5,6 @@ import MovieRentalSystem.ContextObjectInterfaces.PostUserCredentialsValidationCo
 
 
 public interface UserCredentialsValidationInterceptor {
-    public void onPreUserCredentialsValidation(PreUserCredentialsValidationContext context);
-    public void onPostUserCredentialsValidation(PostUserCredentialsValidationContext context);
+    public void onPreUserCredentialsValidation(PreUserCredentialsValidationContext context); //Prior To User Credential Validation
+    public void onPostUserCredentialsValidation(PostUserCredentialsValidationContext context); //After User Credential Validation
 }

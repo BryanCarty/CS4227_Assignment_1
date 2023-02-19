@@ -24,7 +24,6 @@ public class MovieRentalSystemFrontEnd {
     private boolean illegalCharacterDetected;
     private long timeInMilliseconds;
 
-
     public UserCredentialsValidationDispatcher getUserCredDispatcherInstance(){
         return userCredDispatcher;
     }
@@ -34,6 +33,7 @@ public class MovieRentalSystemFrontEnd {
     }
 
     public Pair<Pair<Boolean, String>, String> login(String name, String password){
+        //Pre User Credential Validation Context
         PreUserCredentialsValidationContext preCredValContext = new PreUserCredentialsValidationContext() {
 
             @Override
@@ -62,13 +62,14 @@ public class MovieRentalSystemFrontEnd {
                 return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Illegal Character detected in Credentials"), null);
             }
             Pair<Boolean, Integer> isValidUserPair = isValidUser(name, password);
-            //POST USER CRED
             boolean invalidLogin = !isValidUserPair.getLeft();
-
+            if (invalidLogin){
+                return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Invalid Credentials"), null);
+            }
+            //Post User Credential Validation Context
             PostUserCredentialsValidationContext postUserCredentialsValidationContext = new PostUserCredentialsValidationContext() {
-
                 @Override
-                public int getNumberOfSalesSinceLastLogIn() {
+                public int getNumberOfRentalsSinceLastLogIn() {
                     int lastLogin = getUserLastLogin(isValidUserPair.getRight());
                     int numAdditionalSales = getNumSalesSince(lastLogin);
                     return numAdditionalSales;
@@ -82,16 +83,14 @@ public class MovieRentalSystemFrontEnd {
                 }
 
                 @Override
-                public String getTimeSinceLastLogIn() {
+                public String getDateOfLastLogIn() {
                     int lastLogin = getUserLastLogin(isValidUserPair.getRight());
-                    return unixToStandard(lastLogin);
+                    return unixToDate(lastLogin);
                 }
 
                 
             };
-            if (invalidLogin){
-                return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "401 Unauthorized: Invalid Credentials"), null);
-            }
+            //Post User Credential Validation
             userCredDispatcher.dispatchPostUserCredentialsValidation(postUserCredentialsValidationContext);
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(true, "200 Success: Successfully logged in"), generateUserToken(isValidUserPair.getRight()));
         } catch (Exception e) {
@@ -108,26 +107,28 @@ public class MovieRentalSystemFrontEnd {
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
-        //PRE MOVIE CREATION
+        //Pre Movie Creation Context
         PreMovieCreationContext preMovieCreationContext = new PreMovieCreationContext() {
 
             @Override
-            public void startTimer(long time) {
-                timeInMilliseconds = time;
+            public void startTimer() {
+                timeInMilliseconds = System.currentTimeMillis();
             }
             
         };
+        //PRE MOVIE CREATION
         movieCreationDispatcher.dispatchPreMovieCreation(preMovieCreationContext);
         Movie newMovie = new Movie(name, priceCode);
-        //POST MOVIE CREATION
+        //POST MOVIE CREATION CONTEXT
         PostMovieCreationContext postMovieCreationContext = new PostMovieCreationContext() {
 
             @Override
-            public long stopTimer(long endTime) {
-                return endTime-timeInMilliseconds;
+            public long stopTimer() {
+                return System.currentTimeMillis() - timeInMilliseconds;
             }
             
         };
+        //POST MOVIE CREATION
         movieCreationDispatcher.dispatchPostMovieCreation(postMovieCreationContext);
         return new Pair<Pair<Boolean,String>,Movie>(new Pair<Boolean,String>(true, "200 Success: Movie created successfully"), newMovie);
     }
@@ -176,9 +177,7 @@ public class MovieRentalSystemFrontEnd {
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
-        //PRE STATEMENT CREATION
         String newStatement = customer.statement();
-        //POST STATEMENT CREATION
         return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(true, "200 Success: Customer created successfully"), newStatement);
     }
 
@@ -313,7 +312,8 @@ public class MovieRentalSystemFrontEnd {
         return 2;
     }
 
-    private String unixToStandard(int t){
+    private String unixToDate(int t){
+        //This method would get the date that corresponds to the passed unix time if it were a real world application. For now it returns a dummy date
         return "15-02-22";
     }
 }
