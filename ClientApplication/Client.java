@@ -14,15 +14,13 @@ import MovieRentalSystem.Interceptors.MovieCreationInterceptor;
 import MovieRentalSystem.Interceptors.UserCredentialsValidationInterceptor;
 import javafx.util.Pair;
 
-public class Main {
+public class Client {
     public static void main(String[] args){
-
         //Create Movie Rental System Front End
         MovieRentalSystemFrontEnd movieRentalSystem = new MovieRentalSystem.MovieRentalSystemFrontEnd();
 
         //Define Concrete User Credential Validation Interceptor
         UserCredentialsValidationInterceptor clientCredentialsInterceptor = new UserCredentialsValidationInterceptor(){
-
             @Override
             public void onPreUserCredentialsValidation(PreUserCredentialsValidationContext context) {
                 // Check For Illegal Characters And Avoid SQL Injection
@@ -35,45 +33,36 @@ public class Main {
                 }
                 context.setIllegalCharacterCredentials(false);
             }
-
             @Override
             public void onPostUserCredentialsValidation(PostUserCredentialsValidationContext context) {
                 //Log Updates Since Last Login
                 System.out.println("INFO: Since you last logged in on the "+context.getDateOfLastLogIn()+", there has been "+context.getNumberOfNewCustomersSinceLastLogIn()+" new customer accounts created, and "+context.getNumberOfRentalsSinceLastLogIn()+" new rental transactions");         
             }
-
         };
 
         //Register Credential Validation Interceptor With Dispatcher
         movieRentalSystem.getUserCredDispatcherInstance().registerCredentialValidationInterceptor(clientCredentialsInterceptor);
-        
-        //Login
-        Pair<Pair<Boolean, String>, String> login = movieRentalSystem.login("Mathew", "pass2");
-        System.out.println(login);
-
-
 
         //Define Concrete MovieCreation Interceptor
         MovieCreationInterceptor movieCreationInterceptor = new MovieCreationInterceptor() {
-
             @Override
             public void onPreMovieCreation(PreMovieCreationContext context) {
                 //Start Timer To Measure Performance
-                context.startTimer();
-                
+                context.startTimer();   
             }
-
             @Override
             public void onPostMovieCreation(PostMovieCreationContext context) {
                 //Stop Timer To Measure Performance
-                System.out.println("INFO: It took "+context.stopTimer()+" milliseconds to create a movie");
-                
-            }
-            
+                System.out.println("INFO: It took "+context.stopTimer()+" milliseconds to create a movie");    
+            } 
         };
 
         //Register MovieCreation Interceptor With Dispatcher
         movieRentalSystem.getMovieCreationDispatcherInstance().registerMovieCreationInterceptor(movieCreationInterceptor);
+
+        //Login
+        Pair<Pair<Boolean, String>, String> login = movieRentalSystem.login("Mathew", "pass2");
+        System.out.println(login);
 
         //Create A Movie Using Login Token
         Pair<Pair<Boolean, String>, Movie> movie = movieRentalSystem.createMovie("Harry Potter", 0, login.getRight());

@@ -52,8 +52,6 @@ public class MovieRentalSystemFrontEnd {
             }
             
         };
-
-
         
         try {
             //PRE USER CREDENTIAL VALIDATION
@@ -86,9 +84,7 @@ public class MovieRentalSystemFrontEnd {
                 public String getDateOfLastLogIn() {
                     int lastLogin = getUserLastLogin(isValidUserPair.getRight());
                     return unixToDate(lastLogin);
-                }
-
-                
+                }                
             };
             //Post User Credential Validation
             userCredDispatcher.dispatchPostUserCredentialsValidation(postUserCredentialsValidationContext);
@@ -96,7 +92,6 @@ public class MovieRentalSystemFrontEnd {
         } catch (Exception e) {
             return new Pair<Pair<Boolean,String>,String>(new Pair<Boolean,String>(false, "500 Internal Server Error: An error occured while processing your request: "+e.getMessage()), null);
         }
-
     }
 
     public Pair<Pair<Boolean, String>, Movie> createMovie(String name, int priceCode, String token){
